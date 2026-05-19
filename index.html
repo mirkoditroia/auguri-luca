@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sei pronto per i tuoi 26 anni? - Test per Luca</title>
+    <meta name="description" content="Un test scherzoso e affettuoso per il compleanno di Luca - 19/05/2026" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎂</text></svg>" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(-45deg, #a855f7, #ec4899, #6366f1, #d946ef);
+            background-size: 400% 400%;
+            animation: gradientShift 12s ease infinite;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes pop {
+            0%   { transform: scale(0.5); opacity: 0; }
+            70%  { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: pop 0.45s ease-out both; }
+
+        @keyframes slideIn {
+            from { transform: translateX(40px); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide { animation: slideIn 0.35s ease-out both; }
+
+        @keyframes rainbowText {
+            0%   { color: #ec4899; }
+            25%  { color: #a855f7; }
+            50%  { color: #6366f1; }
+            75%  { color: #ec4899; }
+            100% { color: #d946ef; }
+        }
+        .rainbow-text { animation: rainbowText 3s linear infinite; }
+
+        @keyframes pulseGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255,255,255,0.6), 0 0 40px rgba(236,72,153,0.6); }
+            50%      { text-shadow: 0 0 40px rgba(255,255,255,0.9), 0 0 80px rgba(168,85,247,0.9); }
+        }
+        .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+        .option-btn {
+            transition: all 0.25s ease;
+        }
+        .option-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 25px -8px rgba(168, 85, 247, 0.5);
+        }
+        .option-btn.selected {
+            background: linear-gradient(135deg, #ec4899, #a855f7);
+            color: white;
+            border-color: transparent;
+            transform: scale(1.03);
+            box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.6);
+        }
+
+        .progress-fill {
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(90deg, #ec4899, #a855f7, #6366f1);
+        }
+
+        .spinner {
+            border: 6px solid rgba(255,255,255,0.3);
+            border-top: 6px solid #fff;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            animation: spin 0.9s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-number {
+            font-size: clamp(4rem, 18vw, 11rem);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl">
+
+        <!-- Header / Titolo -->
+        <header class="text-center mb-6 text-white drop-shadow-lg">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-2">
+                🎉 Sei pronto per i tuoi 26 anni? 🎂
+            </h1>
+            <p class="text-base sm:text-lg md:text-xl font-medium opacity-95">
+                Calcola la tua percentuale di <span class="font-bold underline decoration-wavy decoration-yellow-300">Gayaggine</span> 🌈
+            </p>
+        </header>
+
+        <!-- Card principale -->
+        <main class="bg-white/95 backdrop-blur rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10">
+
+            <!-- Barra di progresso -->
+            <div id="progress-container" class="mb-6">
+                <div class="flex justify-between items-center mb-2 text-sm font-semibold text-gray-700">
+                    <span>Progresso</span>
+                    <span><span id="current-step">1</span> / <span id="total-steps">10</span></span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div id="progress-bar" class="progress-fill h-3 rounded-full" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <!-- Schermata Domanda -->
+            <section id="question-screen">
+                <div id="question-container" class="animate-slide">
+                    <h2 id="question-text" class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-6 leading-snug"></h2>
+                    <div id="options-container" class="space-y-3"></div>
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                    <button id="next-btn" disabled
+                            class="px-8 py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold rounded-2xl shadow-lg
+                                   hover:shadow-2xl hover:scale-105 transition-all duration-200
+                                   disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg">
+                        Avanti →
+                    </button>
+                </div>
+            </section>
+
+            <!-- Schermata Caricamento -->
+            <section id="loading-screen" class="hidden text-center py-12">
+                <div class="spinner mb-8"></div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">Calcolo del risultato in corso...</h2>
+                <p id="loading-subtext" class="text-gray-600 text-base sm:text-lg italic">Sto analizzando le tue risposte con il Gay-O-Meter 3000™...</p>
+            </section>
+
+            <!-- Schermata Risultato -->
+            <section id="result-screen" class="hidden text-center py-6">
+                <p class="text-lg sm:text-xl font-semibold text-gray-700 mb-2 animate-pop">Il verdetto è ufficiale:</p>
+
+                <div class="my-4 animate-pop">
+                    <div class="result-number rainbow-text pulse-glow">100%</div>
+                    <div class="text-3xl sm:text-5xl md:text-6xl font-black rainbow-text mt-2">GAY 🌈</div>
+                </div>
+
+                <div class="my-6 bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 border-2 border-pink-300 rounded-2xl p-5 sm:p-6 animate-pop">
+                    <p class="text-base sm:text-lg text-gray-800 leading-relaxed">
+                        Scherzi a parte... <br>
+                        <span class="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                            Buon Compleanno Luca! 🎂
+                        </span><br>
+                        <span class="font-semibold text-gray-700">19/05/2026</span><br>
+                        <span class="italic">Sei unico, amico mio. Goditi i tuoi 26! 🍻💜</span>
+                    </p>
+                </div>
+
+                <button id="retry-btn"
+                        class="mt-4 px-8 py-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold rounded-2xl shadow-lg
+                               hover:shadow-2xl hover:scale-105 transition-all duration-200">
+                    🔁 Riprova il test
+                </button>
+                <p class="text-xs text-gray-500 mt-3 italic">(Spoiler: il risultato non cambierà 😏)</p>
+            </section>
+
+        </main>
+
+        <footer class="text-center mt-6 text-white/80 text-xs sm:text-sm">
+            Fatto con 💜 per il compleanno di Luca · 19 Maggio 2026
+        </footer>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: 'Quante volte al giorno dici la parola "cazzo"?',
+                options: [
+                    'Quasi mai, sono una persona elegante 🎩',
+                    'Solo se mi pestano un piede 😤',
+                    'Tra le 50 e le 100 volte, dipende dal traffico 🚗',
+                    'Più del normale respirare 💨🔥'
+                ]
+            },
+            {
+                q: 'Qual è il tuo sport preferito?',
+                options: [
+                    'Pallavolo 🏐 (tutto torso scoperto e schiacciate)',
+                    'Calcetto col gruppo del lunedì ⚽',
+                    'Palestra: solo petto e bicipiti 💪',
+                    'Sport? Solo quello dei pollici sullo smartphone 📱'
+                ]
+            },
+            {
+                q: 'Che genere di musica ascolti di più?',
+                options: [
+                    'Indie italiano 🎸 (con tanto di malinconia, sigarette e amori finiti)',
+                    'Trap/Rap, perché sono street 🧢',
+                    'Reggaeton, perché la vita è una festa 💃',
+                    'Solo Tiziano Ferro in loop 🎤'
+                ]
+            },
+            {
+                q: 'Come reagisci se vedi una borsa firmata in saldo?',
+                options: [
+                    'Non la noto nemmeno, sono fuori 👀',
+                    'La guardo... ma da lontano, da uomo vero 🚶',
+                    '"Quanto?! Solo 400€?! È praticamente gratis!" 💸',
+                    'La compro e poi piango di gioia 😭👜'
+                ]
+            },
+            {
+                q: 'Qual è la tua bevanda preferita per il venerdì sera?',
+                options: [
+                    'Birra media, classica e maschia 🍺',
+                    'Spritz Aperol, fluo come il mio outfit 🧡',
+                    'Gin Tonic con cetriolo e Britney in sottofondo 🍸',
+                    'Prosecco a fiumi, perché stasera si brilla ✨🥂'
+                ]
+            },
+            {
+                q: 'Quanto tempo passi davanti allo specchio a sistemarti i capelli?',
+                options: [
+                    '0 secondi: mano in testa e via 🤷',
+                    '5 minuti, giusto la riga 💈',
+                    '20 minuti, perché il ciuffo è sacro 💁‍♂️',
+                    'Più di mia sorella prima di un matrimonio 💇‍♂️✨'
+                ]
+            },
+            {
+                q: 'Qual è la tua reazione standard quando parte una canzone di Sanremo?',
+                options: [
+                    'Cambio canale subito 📺',
+                    'La ascolto distrattamente mentre cucino 🍝',
+                    'La canto a squarciagola con la spazzola 🎤',
+                    'Mi alzo in piedi, lacrima e dedico tutto a me stesso 😭🌹'
+                ]
+            },
+            {
+                q: 'Scegli una serie TV imperdibile:',
+                options: [
+                    'Breaking Bad (drogati, ma virili) 💊',
+                    'Stranger Things 🚲',
+                    'RuPaul’s Drag Race 👑💄',
+                    'Sex and the City, ovviamente sono una Carrie 👠'
+                ]
+            },
+            {
+                q: 'Quante notifiche di Instagram hai di solito?',
+                options: [
+                    'Poche, vivo nel mondo reale 📵',
+                    'Una decina, gestibile 📲',
+                    'Centinaia, sono praticamente un influencer 🌟',
+                    'Il telefono ha fuso, troppi like alle mie storie 🔥📸'
+                ]
+            },
+            {
+                q: 'Se potessi viaggiare domani, dove andresti?',
+                options: [
+                    'Montagna, baita e camino 🏔️',
+                    'Un bel borgo italiano sconosciuto 🏘️',
+                    'Mykonos, ovviamente 🌈🍹',
+                    'Ibiza pride week, full glitter mode ✨🪩'
+                ]
+            }
+        ];
+
+        let currentStep = 0;
+        let selectedOption = null;
+
+        const questionScreen = document.getElementById('question-screen');
+        const loadingScreen  = document.getElementById('loading-screen');
+        const resultScreen   = document.getElementById('result-screen');
+        const progressContainer = document.getElementById('progress-container');
+
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const nextBtn = document.getElementById('next-btn');
+        const retryBtn = document.getElementById('retry-btn');
+
+        const progressBar = document.getElementById('progress-bar');
+        const currentStepEl = document.getElementById('current-step');
+        const totalStepsEl = document.getElementById('total-steps');
+
+        totalStepsEl.textContent = questions.length;
+
+        function renderQuestion() {
+            const q = questions[currentStep];
+            selectedOption = null;
+            nextBtn.disabled = true;
+
+            const container = document.getElementById('question-container');
+            container.classList.remove('animate-slide');
+            void container.offsetWidth;
+            container.classList.add('animate-slide');
+
+            questionText.textContent = `${currentStep + 1}. ${q.q}`;
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl font-medium text-gray-700 hover:border-pink-400';
+                btn.textContent = opt;
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedOption = idx;
+                    nextBtn.disabled = false;
+                });
+                optionsContainer.appendChild(btn);
+            });
+
+            updateProgress();
+
+            if (currentStep === questions.length - 1) {
+                nextBtn.textContent = 'Scopri il risultato 🎯';
+            } else {
+                nextBtn.textContent = 'Avanti →';
+            }
+        }
+
+        function updateProgress() {
+            const pct = ((currentStep) / questions.length) * 100;
+            progressBar.style.width = `${Math.max(pct, 5)}%`;
+            currentStepEl.textContent = currentStep + 1;
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (selectedOption === null) return;
+
+            if (currentStep < questions.length - 1) {
+                currentStep++;
+                renderQuestion();
+            } else {
+                progressBar.style.width = '100%';
+                currentStepEl.textContent = questions.length;
+                showLoading();
+            }
+        });
+
+        function showLoading() {
+            questionScreen.classList.add('hidden');
+            progressContainer.classList.add('hidden');
+            loadingScreen.classList.remove('hidden');
+
+            const subtexts = [
+                'Sto analizzando le tue risposte con il Gay-O-Meter 3000™...',
+                'Consulto le stelle e Mariah Carey... 🌟',
+                'Calibrazione del rilevatore di pallavolo in corso... 🏐',
+                'Ultimi calcoli scientifici certificati...'
+            ];
+            const subtextEl = document.getElementById('loading-subtext');
+            let i = 0;
+            const interval = setInterval(() => {
+                i = (i + 1) % subtexts.length;
+                subtextEl.textContent = subtexts[i];
+            }, 600);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                showResult();
+            }, 2000);
+        }
+
+        function showResult() {
+            loadingScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            launchConfetti();
+        }
+
+        function launchConfetti() {
+            const duration = 4 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 35, spread: 360, ticks: 80, zIndex: 9999 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { y: 0.6 },
+                colors: ['#ec4899', '#a855f7', '#6366f1', '#f59e0b', '#10b981', '#ef4444']
+            });
+
+            const interval = setInterval(() => {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+                    colors: ['#ec4899', '#a855f7', '#6366f1']
+                });
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+                    colors: ['#f59e0b', '#10b981', '#d946ef']
+                });
+            }, 250);
+        }
+
+        retryBtn.addEventListener('click', () => {
+            currentStep = 0;
+            selectedOption = null;
+            resultScreen.classList.add('hidden');
+            progressContainer.classList.remove('hidden');
+            questionScreen.classList.remove('hidden');
+            renderQuestion();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        renderQuestion();
+    </script>
+</body>
+</html>
